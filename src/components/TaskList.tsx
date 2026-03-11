@@ -1,5 +1,5 @@
 import { Task } from '../lib/supabase';
-import { Calendar, Clock, CheckCircle2, Circle, CreditCard as Edit2, Trash2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Circle, CreditCard as Edit2, Trash2, Flag, Tag } from 'lucide-react';
 
 interface TaskListProps {
   title: string;
@@ -48,6 +48,26 @@ export function TaskList({
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'work': return '💼';
+      case 'personal': return '👤';
+      case 'health': return '🏥';
+      case 'education': return '📚';
+      case 'finance': return '💰';
+      default: return '📌';
+    }
+  };
+
   return (
     <div className={`border-2 rounded-xl p-6 ${colorClasses[color]}`}>
       <h2 className={`text-xl font-bold mb-4 ${headerColors[color]}`}>
@@ -92,6 +112,16 @@ export function TaskList({
                       {task.description}
                     </p>
                   )}
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
+                      <Flag className="w-3 h-3" />
+                      {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                      <span className="text-sm">{getCategoryIcon(task.category)}</span>
+                      {task.category.charAt(0).toUpperCase() + task.category.slice(1)}
+                    </span>
+                  </div>
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />

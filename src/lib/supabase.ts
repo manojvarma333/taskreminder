@@ -16,6 +16,8 @@ export interface Task {
   description: string;
   scheduled_date: string;
   scheduled_time: string;
+  priority: 'low' | 'medium' | 'high';
+  category: 'general' | 'work' | 'personal' | 'health' | 'education' | 'finance';
   is_completed: boolean;
   is_notified: boolean;
   created_at: string;

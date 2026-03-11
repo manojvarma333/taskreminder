@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { X, Save, Loader2 } from 'lucide-react';
+import { X, Save, Loader2, Flag, Tag } from 'lucide-react';
 
 interface TaskFormProps {
   task: Task | null;
@@ -15,6 +15,8 @@ export function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
   const [description, setDescription] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [category, setCategory] = useState<'general' | 'work' | 'personal' | 'health' | 'education' | 'finance'>('general');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,12 +26,16 @@ export function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
       setDescription(task.description);
       setScheduledDate(task.scheduled_date);
       setScheduledTime(task.scheduled_time);
+      setPriority(task.priority || 'medium');
+      setCategory(task.category || 'general');
     } else {
       const now = new Date();
       const today = now.toISOString().split('T')[0];
       const currentTime = now.toTimeString().slice(0, 5);
       setScheduledDate(today);
       setScheduledTime(currentTime);
+      setPriority('medium');
+      setCategory('general');
     }
   }, [task]);
 
@@ -46,6 +52,8 @@ export function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
         description,
         scheduled_date: scheduledDate,
         scheduled_time: scheduledTime,
+        priority,
+        category,
         user_id: user.id,
       };
 
@@ -113,6 +121,45 @@ export function TaskForm({ task, onClose, onSaved }: TaskFormProps) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
               placeholder="Add task details (optional)"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                <Flag className="w-4 h-4 inline mr-1" />
+                Priority
+              </label>
+              <select
+                id="priority"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              >
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                <Tag className="w-4 h-4 inline mr-1" />
+                Category
+              </label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as any)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              >
+                <option value="general">📌 General</option>
+                <option value="work">💼 Work</option>
+                <option value="personal">👤 Personal</option>
+                <option value="health">🏥 Health</option>
+                <option value="education">📚 Education</option>
+                <option value="finance">💰 Finance</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
