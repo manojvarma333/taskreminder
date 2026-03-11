@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Loader2, AlertTriangle } from 'lucide-react';
+import { LogOut, Plus, Loader2, AlertTriangle, Bell, BellOff } from 'lucide-react';
 import { TaskList } from './TaskList';
 import { TaskForm } from './TaskForm';
-import { useNotifications } from '../hooks/useNotificationsSimple';
+import { useNotifications } from '../hooks/useNotificationsFinal';
 
 export function TaskDashboard() {
   const { user, signOut } = useAuth();
@@ -13,6 +13,7 @@ export function TaskDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<'checking' | 'enabled' | 'disabled'>('checking');
 
   useNotifications(user?.id);
 
@@ -24,8 +25,17 @@ export function TaskDashboard() {
   }, [user]);
 
   const requestNotificationPermission = async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
+    if ('Notification' in window) {
+      setNotificationStatus('checking');
+      
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        setNotificationStatus(permission === 'granted' ? 'enabled' : 'disabled');
+      } else {
+        setNotificationStatus(Notification.permission === 'granted' ? 'enabled' : 'disabled');
+      }
+    } else {
+      setNotificationStatus('disabled');
     }
   };
 
@@ -155,13 +165,35 @@ export function TaskDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Smart Task Reminder</h1>
               <p className="text-sm text-gray-600 mt-1">{user?.email}</p>
             </div>
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Sign Out
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100">
+                {notificationStatus === 'checking' && (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                    <span className="text-sm text-gray-600">Checking...</span>
+                  </>
+                )}
+                {notificationStatus === 'enabled' && (
+                  <>
+                    <Bell className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-green-600">Notifications On</span>
+                  </>
+                )}
+                {notificationStatus === 'disabled' && (
+                  <>
+                    <BellOff className="w-4 h-4 text-red-600" />
+                    <span className="text-sm text-red-600">Notifications Off</span>
+                  </>
+                )}
+              </div>
+              <button
+                onClick={signOut}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>

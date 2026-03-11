@@ -1,4 +1,4 @@
-const CACHE_NAME = 'task-reminder-v1';
+const CACHE_NAME = 'task-reminder-v2';
 
 // Install service worker
 self.addEventListener('install', event => {
@@ -23,6 +23,7 @@ self.addEventListener('push', event => {
     badge: '/vite.svg',
     tag: 'task-reminder',
     requireInteraction: true,
+    vibrate: [200, 100, 200],
     actions: [
       {
         action: 'open',
@@ -81,8 +82,24 @@ self.addEventListener('notificationclick', event => {
   }
 });
 
+// Handle notification close
+self.addEventListener('notificationclose', event => {
+  console.log('Notification closed:', event);
+});
+
 // Handle push subscription changes
 self.addEventListener('pushsubscriptionchange', event => {
   console.log('Push subscription changed:', event);
-  // Handle subscription renewal
 });
+
+// Background sync for offline support
+self.addEventListener('sync', event => {
+  if (event.tag === 'background-sync-tasks') {
+    event.waitUntil(syncTasks());
+  }
+});
+
+async function syncTasks() {
+  console.log('Background sync initiated');
+  // Add any background sync logic here
+}
