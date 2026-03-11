@@ -4,7 +4,7 @@ import { supabase, Task } from '../lib/supabase';
 import { LogOut, Plus, Loader2 } from 'lucide-react';
 import { TaskList } from './TaskList';
 import { TaskForm } from './TaskForm';
-import { useNotificationsEnhanced } from '../hooks/useNotificationsEnhanced';
+import { useNotifications } from '../hooks/useNotificationsSimple';
 
 export function TaskDashboard() {
   const { user, signOut } = useAuth();
@@ -13,7 +13,7 @@ export function TaskDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  useNotificationsEnhanced(user?.id);
+  useNotifications(user?.id);
 
   useEffect(() => {
     if (user) {
