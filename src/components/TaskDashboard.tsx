@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Loader2 } from 'lucide-react';
+import { LogOut, Plus, Loader2, AlertTriangle } from 'lucide-react';
 import { TaskList } from './TaskList';
 import { TaskForm } from './TaskForm';
 import { useNotifications } from '../hooks/useNotificationsSimple';
@@ -10,6 +10,7 @@ export function TaskDashboard() {
   const { user, signOut } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -30,6 +31,9 @@ export function TaskDashboard() {
 
   const loadTasks = async () => {
     try {
+      setError(null);
+      setLoading(true);
+      
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -37,9 +41,19 @@ export function TaskDashboard() {
         .order('scheduled_time', { ascending: true });
 
       if (error) throw error;
+      
       setTasks(data || []);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
+    } catch (err: any) {
+      console.error('Error loading tasks:', err);
+      
+      // Handle rate limit errors
+      if (err?.code === 'PGRST116') {
+        setError('Too many requests. Please wait a few minutes and try again.');
+      } else if (err?.code === 'PGRST120') {
+        setError('Connection limit exceeded. Please try again later.');
+      } else {
+        setError('Failed to load tasks. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +122,26 @@ export function TaskDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
+            <h2 className="text-lg font-semibold text-red-800">Error</h2>
+          </div>
+          <p className="text-red-700 text-sm">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="mt-4 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
