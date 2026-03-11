@@ -24,7 +24,28 @@ export function AuthForm() {
         if (error) throw error;
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      let errorMessage = 'An error occurred';
+      
+      if (err && typeof err === 'object' && 'message' in err) {
+        const authError = err as { message: string; status?: number };
+        
+        // Handle specific rate limit errors
+        if (authError.message.includes('rate limit') || 
+            authError.message.includes('too many requests') ||
+            authError.status === 429) {
+          errorMessage = '⏱️ Too many requests. Please wait 2-3 minutes and try again.';
+        } else if (authError.message.includes('Invalid login credentials')) {
+          errorMessage = '❌ Invalid email or password. Please check your credentials.';
+        } else if (authError.message.includes('User already registered')) {
+          errorMessage = '📧 This email is already registered. Please sign in instead.';
+        } else if (authError.message.includes('Email not confirmed')) {
+          errorMessage = '📧 Please check your email to confirm your account.';
+        } else {
+          errorMessage = authError.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
